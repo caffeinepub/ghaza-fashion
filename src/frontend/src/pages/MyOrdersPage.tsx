@@ -40,7 +40,6 @@ export function MyOrdersPage() {
   const [cancellingId, setCancellingId] = useState<bigint | null>(null);
   const { data: orders, isLoading, isFetching } = useMyOrders();
   const cancelOrder = useCancelOrder();
-  const storedPhone = localStorage.getItem("ghaza_customer_phone") ?? "";
 
   const storedIds: string[] = JSON.parse(
     localStorage.getItem("ghaza_order_ids") ?? "[]",
@@ -50,10 +49,7 @@ export function MyOrdersPage() {
   const handleCancel = async (order: Order) => {
     setCancellingId(order.id);
     try {
-      await cancelOrder.mutateAsync({
-        orderId: order.id,
-        customerPhone: storedPhone || order.customerPhone,
-      });
+      await cancelOrder.mutateAsync(order.id);
       toast.success(`Order #${order.id} has been cancelled.`);
     } catch (err: unknown) {
       toast.error(

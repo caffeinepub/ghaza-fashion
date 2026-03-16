@@ -40,7 +40,7 @@ export interface Order {
 }
 export interface backendInterface {
     addProduct(name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
-    cancelOrder(orderId: bigint, customerPhone: string): Promise<void>;
+    cancelOrder(orderId: bigint): Promise<void>;
     deleteProduct(id: bigint): Promise<void>;
     getContactInfo(): Promise<string>;
     getOrder(id: bigint): Promise<Order>;

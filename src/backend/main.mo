@@ -213,16 +213,13 @@ actor {
     filtered.toArray();
   };
 
-  // Cancel an order within 4 hours of placing it
-  public shared ({ caller }) func cancelOrder(orderId : Nat, customerPhone : Text) : async () {
+  // Cancel an order within 4 hours of placing it (by order ID only)
+  public shared ({ caller }) func cancelOrder(orderId : Nat) : async () {
     switch (orders.get(orderId)) {
       case (null) {
         Runtime.trap("Order not found");
       };
       case (?existingOrder) {
-        if (existingOrder.customerPhone != customerPhone) {
-          Runtime.trap("Phone number does not match");
-        };
         let elapsed : Int = Time.now() - existingOrder.createdAt;
         if (elapsed > cancelWindowNs) {
           Runtime.trap("Cancellation window has passed (4 hours)");

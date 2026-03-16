@@ -123,12 +123,11 @@ export function usePlaceOrder() {
 }
 
 export function useCancelOrder() {
-  const { actor } = useActor();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (args: { orderId: bigint; customerPhone: string }) => {
-      if (!actor) throw new Error("No actor");
-      return withTimeout(actor.cancelOrder(args.orderId, args.customerPhone));
+    mutationFn: async (orderId: bigint) => {
+      const actor = await withTimeout(createActorWithConfig(), 15000);
+      return withTimeout(actor.cancelOrder(orderId));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-orders"] }),
   });

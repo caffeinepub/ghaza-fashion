@@ -140,7 +140,7 @@ export interface backendInterface {
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     addProduct(name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
     deleteProduct(id: bigint): Promise<void>;
-    cancelOrder(orderId: bigint, customerPhone: string): Promise<void>;
+    cancelOrder(orderId: bigint): Promise<void>;
     getContactInfo(): Promise<string>;
     getOrder(id: bigint): Promise<Order>;
     getOrders(password: string): Promise<Array<Order>>;
@@ -270,17 +270,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async cancelOrder(arg0: bigint, arg1: string): Promise<void> {
+    async cancelOrder(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.cancelOrder(arg0, arg1);
+                const result = await this.actor.cancelOrder(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.cancelOrder(arg0, arg1);
+            const result = await this.actor.cancelOrder(arg0);
             return result;
         }
     }
