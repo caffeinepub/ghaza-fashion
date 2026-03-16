@@ -91,6 +91,7 @@ export class ExternalBlob {
 }
 export interface Product {
     id: bigint;
+    originalPrice: bigint;
     imageUrls: Array<string>;
     name: string;
     createdAt: bigint;
@@ -138,9 +139,9 @@ export interface backendInterface {
     _caffeineStorageCreateCertificate(blobHash: string): Promise<_CaffeineStorageCreateCertificateResult>;
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
-    addProduct(name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
-    deleteProduct(id: bigint): Promise<void>;
+    addProduct(name: string, price: bigint, originalPrice: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
     cancelOrder(orderId: bigint): Promise<void>;
+    deleteProduct(id: bigint): Promise<void>;
     getContactInfo(): Promise<string>;
     getOrder(id: bigint): Promise<Order>;
     getOrders(password: string): Promise<Array<Order>>;
@@ -152,7 +153,7 @@ export interface backendInterface {
     isInitializedQuery(): Promise<boolean>;
     placeOrder(customerName: string, customerPhone: string, customerAddress: string, items: Array<OrderItem>, paymentMethod: string): Promise<bigint>;
     updateOrderStatus(orderId: bigint, status: string, password: string): Promise<void>;
-    updateProduct(id: bigint, name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<void>;
+    updateProduct(id: bigint, name: string, price: bigint, originalPrice: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<void>;
     verifyAdminPassword(password: string): Promise<boolean>;
 }
 import type { _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -242,31 +243,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addProduct(arg0: string, arg1: bigint, arg2: string, arg3: Array<string>, arg4: string, arg5: Array<string>, arg6: boolean): Promise<bigint> {
+    async addProduct(arg0: string, arg1: bigint, arg2: bigint, arg3: string, arg4: Array<string>, arg5: string, arg6: Array<string>, arg7: boolean): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
-            return result;
-        }
-    }
-    async deleteProduct(arg0: bigint): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.deleteProduct(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.deleteProduct(arg0);
+            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             return result;
         }
     }
@@ -281,6 +268,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.cancelOrder(arg0);
+            return result;
+        }
+    }
+    async deleteProduct(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteProduct(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteProduct(arg0);
             return result;
         }
     }
@@ -438,17 +439,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateProduct(arg0: bigint, arg1: string, arg2: bigint, arg3: string, arg4: Array<string>, arg5: string, arg6: Array<string>, arg7: boolean): Promise<void> {
+    async updateProduct(arg0: bigint, arg1: string, arg2: bigint, arg3: bigint, arg4: string, arg5: Array<string>, arg6: string, arg7: Array<string>, arg8: boolean): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             return result;
         }
     }

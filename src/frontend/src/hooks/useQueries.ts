@@ -139,6 +139,7 @@ export function useAddProduct() {
     mutationFn: async (args: {
       name: string;
       price: bigint;
+      originalPrice: bigint;
       description: string;
       imageUrls: string[];
       category: string;
@@ -150,6 +151,7 @@ export function useAddProduct() {
         actor.addProduct(
           args.name,
           args.price,
+          args.originalPrice,
           args.description,
           args.imageUrls,
           args.category,
@@ -169,6 +171,7 @@ export function useUpdateProduct() {
       id: bigint;
       name: string;
       price: bigint;
+      originalPrice: bigint;
       description: string;
       imageUrls: string[];
       category: string;
@@ -181,6 +184,7 @@ export function useUpdateProduct() {
           args.id,
           args.name,
           args.price,
+          args.originalPrice,
           args.description,
           args.imageUrls,
           args.category,

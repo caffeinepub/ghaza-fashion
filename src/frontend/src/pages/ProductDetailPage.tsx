@@ -63,6 +63,15 @@ export function ProductDetailPage() {
       ? product.imageUrls
       : ["/assets/generated/product-lawn-suit.dim_600x700.jpg"];
 
+  const hasOriginalPrice =
+    product.originalPrice > 0n && product.originalPrice > product.price;
+
+  const discountPercent = hasOriginalPrice
+    ? Math.round(
+        (1 - Number(product.price) / Number(product.originalPrice)) * 100,
+      )
+    : 0;
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -131,9 +140,28 @@ export function ProductDetailPage() {
             <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground mb-3">
               {product.name}
             </h1>
-            <p className="font-body text-2xl font-bold text-foreground mb-6">
-              {formatPrice(product.price)}
-            </p>
+
+            {/* Price section */}
+            <div className="flex items-baseline gap-3 mb-6 flex-wrap">
+              <p className="font-body text-2xl font-bold text-foreground">
+                {formatPrice(product.price)}
+              </p>
+              {hasOriginalPrice && (
+                <p className="font-body text-lg text-muted-foreground line-through">
+                  {formatPrice(product.originalPrice)}
+                </p>
+              )}
+              {hasOriginalPrice && (
+                <span className="bg-destructive text-destructive-foreground font-body text-xs uppercase tracking-wider px-2 py-0.5 font-semibold">
+                  Sale
+                </span>
+              )}
+              {discountPercent > 0 && (
+                <span className="bg-foreground text-primary-foreground font-body text-xs px-2 py-0.5 font-bold">
+                  -{discountPercent}% OFF
+                </span>
+              )}
+            </div>
 
             {/* Availability */}
             <div className="flex items-center gap-2 mb-6">

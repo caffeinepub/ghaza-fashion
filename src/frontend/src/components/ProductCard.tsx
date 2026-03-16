@@ -20,6 +20,15 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
     "/assets/generated/product-lawn-suit.dim_600x700.jpg";
   const defaultSize = product.sizes[0] || "M";
 
+  const hasOriginalPrice =
+    product.originalPrice > 0n && product.originalPrice > product.price;
+
+  const discountPercent = hasOriginalPrice
+    ? Math.round(
+        (1 - Number(product.price) / Number(product.originalPrice)) * 100,
+      )
+    : 0;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -50,6 +59,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               </span>
             </div>
           )}
+          {hasOriginalPrice && (
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              <span className="bg-destructive text-destructive-foreground font-body text-[10px] uppercase tracking-wider px-1.5 py-0.5 font-semibold">
+                Sale
+              </span>
+              {discountPercent > 0 && (
+                <span className="bg-foreground text-primary-foreground font-body text-[10px] px-1.5 py-0.5 font-bold">
+                  -{discountPercent}%
+                </span>
+              )}
+            </div>
+          )}
           <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300" />
           <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
             <Button
@@ -74,9 +95,16 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
                 {product.name}
               </h3>
             </div>
-            <p className="font-body text-sm font-bold text-foreground whitespace-nowrap">
-              {formatPrice(product.price)}
-            </p>
+            <div className="flex flex-col items-end gap-0.5">
+              {hasOriginalPrice && (
+                <p className="font-body text-xs text-muted-foreground line-through whitespace-nowrap">
+                  {formatPrice(product.originalPrice)}
+                </p>
+              )}
+              <p className="font-body text-sm font-bold text-foreground whitespace-nowrap">
+                {formatPrice(product.price)}
+              </p>
+            </div>
           </div>
           {product.sizes.length > 0 && (
             <div className="flex gap-1 mt-2 flex-wrap">

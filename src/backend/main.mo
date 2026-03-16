@@ -9,6 +9,8 @@ import VarArray "mo:core/VarArray";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
+
+
 actor {
   include MixinStorage();
 
@@ -16,6 +18,7 @@ actor {
     id : Nat;
     name : Text;
     price : Nat;
+    originalPrice : Nat; // New field
     description : Text;
     imageUrls : [Text];
     category : Text;
@@ -66,6 +69,7 @@ actor {
   public shared ({ caller }) func addProduct(
     name : Text,
     price : Nat,
+    originalPrice : Nat,
     description : Text,
     imageUrls : [Text],
     category : Text,
@@ -76,6 +80,7 @@ actor {
       id = nextProductId;
       name;
       price;
+      originalPrice;
       description;
       imageUrls;
       category;
@@ -93,6 +98,7 @@ actor {
     id : Nat,
     name : Text,
     price : Nat,
+    originalPrice : Nat,
     description : Text,
     imageUrls : [Text],
     category : Text,
@@ -108,6 +114,7 @@ actor {
           id;
           name;
           price;
+          originalPrice;
           description;
           imageUrls;
           category;
@@ -287,6 +294,7 @@ actor {
         id = 1;
         name = "Embroidered Lawn Dress";
         price = 3499;
+        originalPrice = 0;
         description = "Beautifully embroidered 3-piece lawn dress with chiffon dupatta. Perfect for summer occasions.";
         imageUrls = [
           "https://example.com/images/dress1_1.jpg",
@@ -301,6 +309,7 @@ actor {
         id = 2;
         name = "Cotton Kurti";
         price = 1599;
+        originalPrice = 0;
         description = "Elegant cotton kurti with digital print. Comfortable and stylish for everyday wear.";
         imageUrls = [
           "https://example.com/images/kurti1_1.jpg",
@@ -314,6 +323,7 @@ actor {
         id = 3;
         name = "Formal Silk Gown";
         price = 6999;
+        originalPrice = 0;
         description = "Luxurious silk gown with intricate work. Ideal for formal events and weddings.";
         imageUrls = [
           "https://example.com/images/gown1_1.jpg",
@@ -328,6 +338,7 @@ actor {
         id = 4;
         name = "Casual Tops (Set of 2)";
         price = 2499;
+        originalPrice = 0;
         description = "Pack of 2 casual tops in vibrant prints. Made from soft jersey fabric.";
         imageUrls = [
           "https://example.com/images/tops1_1.jpg",
@@ -342,6 +353,7 @@ actor {
         id = 5;
         name = "Embroidered Shalwar Kameez";
         price = 4599;
+        originalPrice = 0;
         description = "Traditional shalwar kameez with beautiful embroidery. Comfortable for all seasons.";
         imageUrls = [
           "https://example.com/images/shalwar_kameez1_1.jpg",
@@ -355,6 +367,7 @@ actor {
         id = 6;
         name = "Party Wear Maxi Dress";
         price = 5799;
+        originalPrice = 0;
         description = "Stylish maxi dress with sequence work. Perfect for parties and festive occasions.";
         imageUrls = [
           "https://example.com/images/maxi1_1.jpg",

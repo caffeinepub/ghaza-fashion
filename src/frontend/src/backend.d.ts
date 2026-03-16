@@ -9,6 +9,7 @@ export interface None {
 export type Option<T> = Some<T> | None;
 export interface Product {
     id: bigint;
+    originalPrice: bigint;
     imageUrls: Array<string>;
     name: string;
     createdAt: bigint;
@@ -39,7 +40,7 @@ export interface Order {
     subtotal: bigint;
 }
 export interface backendInterface {
-    addProduct(name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
+    addProduct(name: string, price: bigint, originalPrice: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<bigint>;
     cancelOrder(orderId: bigint): Promise<void>;
     deleteProduct(id: bigint): Promise<void>;
     getContactInfo(): Promise<string>;
@@ -53,6 +54,6 @@ export interface backendInterface {
     isInitializedQuery(): Promise<boolean>;
     placeOrder(customerName: string, customerPhone: string, customerAddress: string, items: Array<OrderItem>, paymentMethod: string): Promise<bigint>;
     updateOrderStatus(orderId: bigint, status: string, password: string): Promise<void>;
-    updateProduct(id: bigint, name: string, price: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<void>;
+    updateProduct(id: bigint, name: string, price: bigint, originalPrice: bigint, description: string, imageUrls: Array<string>, category: string, sizes: Array<string>, availability: boolean): Promise<void>;
     verifyAdminPassword(password: string): Promise<boolean>;
 }

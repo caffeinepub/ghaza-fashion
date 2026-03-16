@@ -70,6 +70,7 @@ const CATEGORIES = [
 const EMPTY_FORM = {
   name: "",
   price: "",
+  originalPrice: "",
   description: "",
   imageUrls: [] as string[],
   category: "",
@@ -131,6 +132,8 @@ export function AdminDashboardPage() {
     setForm({
       name: product.name,
       price: product.price.toString(),
+      originalPrice:
+        product.originalPrice > 0n ? product.originalPrice.toString() : "",
       description: product.description,
       imageUrls: product.imageUrls,
       category: product.category,
@@ -181,12 +184,23 @@ export function AdminDashboardPage() {
       return;
     }
 
+    let originalPriceBigInt = 0n;
+    if (form.originalPrice.trim()) {
+      try {
+        originalPriceBigInt = parsePriceToBigInt(form.originalPrice);
+      } catch {
+        toast.error("Please enter a valid original price (numbers only)");
+        return;
+      }
+    }
+
     try {
       if (editingProduct) {
         await updateProduct.mutateAsync({
           id: editingProduct.id,
           name: form.name,
           price: priceBigInt,
+          originalPrice: originalPriceBigInt,
           description: form.description,
           imageUrls: form.imageUrls,
           category: form.category,
@@ -198,6 +212,7 @@ export function AdminDashboardPage() {
         await addProduct.mutateAsync({
           name: form.name,
           price: priceBigInt,
+          originalPrice: originalPriceBigInt,
           description: form.description,
           imageUrls: form.imageUrls,
           category: form.category,
@@ -357,9 +372,16 @@ export function AdminDashboardPage() {
                           </p>
                         </td>
                         <td className="p-3 hidden sm:table-cell">
-                          <p className="font-body text-sm font-semibold">
-                            {formatPrice(product.price)}
-                          </p>
+                          <div className="flex flex-col">
+                            <p className="font-body text-sm font-semibold">
+                              {formatPrice(product.price)}
+                            </p>
+                            {product.originalPrice > 0n && (
+                              <p className="font-body text-xs text-muted-foreground line-through">
+                                {formatPrice(product.originalPrice)}
+                              </p>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 hidden md:table-cell">
                           <Badge
@@ -636,6 +658,30 @@ export function AdminDashboardPage() {
                 }
                 className="rounded-none mt-1"
                 placeholder="e.g. 2500"
+                inputMode="numeric"
+                data-ocid="admin.input"
+              />
+            </div>
+
+            {/* Original Price */}
+            <div>
+              <Label
+                htmlFor="porigprice"
+                className="font-body text-xs uppercase tracking-wider"
+              >
+                Original Price (Rs.){" "}
+                <span className="text-muted-foreground normal-case">
+                  — leave blank if no sale
+                </span>
+              </Label>
+              <Input
+                id="porigprice"
+                value={form.originalPrice}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, originalPrice: e.target.value }))
+                }
+                className="rounded-none mt-1"
+                placeholder="e.g. 3500"
                 inputMode="numeric"
                 data-ocid="admin.input"
               />

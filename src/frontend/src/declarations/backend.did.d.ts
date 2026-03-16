@@ -32,6 +32,7 @@ export interface OrderItem {
 }
 export interface Product {
   'id' : bigint,
+  'originalPrice' : bigint,
   'imageUrls' : Array<string>,
   'name' : string,
   'createdAt' : bigint,
@@ -69,13 +70,24 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   'addProduct' : ActorMethod<
-    [string, bigint, string, Array<string>, string, Array<string>, boolean],
+    [
+      string,
+      bigint,
+      bigint,
+      string,
+      Array<string>,
+      string,
+      Array<string>,
+      boolean,
+    ],
     bigint
   >,
+  'cancelOrder' : ActorMethod<[bigint], undefined>,
   'deleteProduct' : ActorMethod<[bigint], undefined>,
   'getContactInfo' : ActorMethod<[], string>,
   'getOrder' : ActorMethod<[bigint], Order>,
   'getOrders' : ActorMethod<[string], Array<Order>>,
+  'getOrdersByPhone' : ActorMethod<[string], Array<Order>>,
   'getProduct' : ActorMethod<[bigint], Product>,
   'getProducts' : ActorMethod<[], Array<Product>>,
   'getReturnPolicy' : ActorMethod<[], string>,
@@ -90,6 +102,7 @@ export interface _SERVICE {
     [
       bigint,
       string,
+      bigint,
       bigint,
       string,
       Array<string>,

@@ -19,6 +19,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
   {
     id: BigInt(2),
@@ -31,6 +32,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
   {
     id: BigInt(3),
@@ -43,6 +45,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
   {
     id: BigInt(4),
@@ -55,6 +58,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
   {
     id: BigInt(5),
@@ -67,6 +71,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
   {
     id: BigInt(6),
@@ -79,6 +84,7 @@ const SAMPLE_PRODUCTS = [
     sizes: [],
     availability: true,
     createdAt: BigInt(0),
+    originalPrice: 0n,
   },
 ];
 
@@ -96,62 +102,76 @@ export function HomePage() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[460px]">
-            <div className="flex flex-col justify-center py-16 lg:py-24 pr-8">
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="font-body text-xs uppercase tracking-[0.3em] text-muted-foreground mb-4"
-              >
-                New Collection 2026
-              </motion.p>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="font-display text-5xl lg:text-7xl font-bold text-foreground leading-none mb-6"
-              >
-                Dress with
-                <br />
-                <span className="italic font-normal">Elegance</span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="font-body text-base text-muted-foreground max-w-md leading-relaxed mb-8"
-              >
-                Discover our curated collection of premium Pakistani women's
-                fashion — from everyday elegance to bridal couture.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-              >
-                <a
-                  href="#products"
-                  className="inline-block bg-foreground text-primary-foreground font-body text-xs uppercase tracking-widest px-8 py-3.5 hover:bg-accent transition-colors duration-300"
-                >
-                  Shop Now
-                </a>
-              </motion.div>
-            </div>
-            <div className="relative hidden lg:block">
-              <motion.img
-                initial={{ opacity: 0, scale: 1.03 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                src="/assets/generated/ghaza-hero.dim_1200x600.jpg"
-                alt="Ghaza Fashion Collection"
-                className="w-full h-full object-cover object-top"
-              />
-            </div>
-          </div>
+      {/* Hero — full-width boutique image banner */}
+      <section
+        className="relative overflow-hidden"
+        style={{ minHeight: "clamp(500px, 65vh, 700px)" }}
+      >
+        {/* Background image */}
+        <motion.div
+          initial={{ scale: 1.05, opacity: 0.8 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="absolute inset-0"
+        >
+          <img
+            src="/assets/uploads/IMG-20260317-WA0000-1.jpg"
+            alt="Ghaza Fashion Boutique"
+            className="w-full h-full object-cover object-center"
+          />
+        </motion.div>
+
+        {/* Dark gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/40 to-black/20" />
+
+        {/* Centered text content */}
+        <div
+          className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 sm:px-6 lg:px-8"
+          style={{ minHeight: "clamp(500px, 65vh, 700px)" }}
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="font-body text-xs uppercase tracking-[0.35em] text-white/80 mb-4"
+          >
+            New Collection 2026
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-none mb-5 drop-shadow-lg"
+          >
+            Dress with
+            <br />
+            <span className="italic font-normal">Elegance</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="font-body text-base sm:text-lg text-white/85 max-w-md leading-relaxed mb-8 drop-shadow"
+          >
+            Discover our curated collection of premium Pakistani women's fashion
+            — from everyday elegance to bridal couture.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+          >
+            <a
+              href="#products"
+              data-ocid="hero.primary_button"
+              className="inline-block bg-white text-black font-body text-xs uppercase tracking-widest px-10 py-4 hover:bg-white/90 transition-colors duration-300 shadow-xl"
+            >
+              Shop Now
+            </a>
+          </motion.div>
         </div>
       </section>
 

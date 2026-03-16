@@ -41,6 +41,7 @@ export const Order = IDL.Record({
 });
 export const Product = IDL.Record({
   'id' : IDL.Nat,
+  'originalPrice' : IDL.Nat,
   'imageUrls' : IDL.Vec(IDL.Text),
   'name' : IDL.Text,
   'createdAt' : IDL.Int,
@@ -82,6 +83,7 @@ export const idlService = IDL.Service({
       [
         IDL.Text,
         IDL.Nat,
+        IDL.Nat,
         IDL.Text,
         IDL.Vec(IDL.Text),
         IDL.Text,
@@ -91,10 +93,12 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'cancelOrder' : IDL.Func([IDL.Nat], [], []),
   'deleteProduct' : IDL.Func([IDL.Nat], [], []),
   'getContactInfo' : IDL.Func([], [IDL.Text], ['query']),
   'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
   'getOrders' : IDL.Func([IDL.Text], [IDL.Vec(Order)], []),
+  'getOrdersByPhone' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
   'getProduct' : IDL.Func([IDL.Nat], [Product], ['query']),
   'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getReturnPolicy' : IDL.Func([], [IDL.Text], ['query']),
@@ -110,6 +114,7 @@ export const idlService = IDL.Service({
       [
         IDL.Nat,
         IDL.Text,
+        IDL.Nat,
         IDL.Nat,
         IDL.Text,
         IDL.Vec(IDL.Text),
@@ -159,6 +164,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Product = IDL.Record({
     'id' : IDL.Nat,
+    'originalPrice' : IDL.Nat,
     'imageUrls' : IDL.Vec(IDL.Text),
     'name' : IDL.Text,
     'createdAt' : IDL.Int,
@@ -200,6 +206,7 @@ export const idlFactory = ({ IDL }) => {
         [
           IDL.Text,
           IDL.Nat,
+          IDL.Nat,
           IDL.Text,
           IDL.Vec(IDL.Text),
           IDL.Text,
@@ -209,10 +216,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'cancelOrder' : IDL.Func([IDL.Nat], [], []),
     'deleteProduct' : IDL.Func([IDL.Nat], [], []),
     'getContactInfo' : IDL.Func([], [IDL.Text], ['query']),
     'getOrder' : IDL.Func([IDL.Nat], [Order], ['query']),
     'getOrders' : IDL.Func([IDL.Text], [IDL.Vec(Order)], []),
+    'getOrdersByPhone' : IDL.Func([IDL.Text], [IDL.Vec(Order)], ['query']),
     'getProduct' : IDL.Func([IDL.Nat], [Product], ['query']),
     'getProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getReturnPolicy' : IDL.Func([], [IDL.Text], ['query']),
@@ -228,6 +237,7 @@ export const idlFactory = ({ IDL }) => {
         [
           IDL.Nat,
           IDL.Text,
+          IDL.Nat,
           IDL.Nat,
           IDL.Text,
           IDL.Vec(IDL.Text),
