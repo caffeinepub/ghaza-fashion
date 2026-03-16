@@ -1,0 +1,68 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0.99 0 0;
+    --foreground: 0.12 0.01 20;
+    --card: 0.99 0 0;
+    --card-foreground: 0.12 0.01 20;
+    --popover: 0.99 0 0;
+    --popover-foreground: 0.12 0.01 20;
+    --primary: 0.12 0.01 20;
+    --primary-foreground: 0.99 0 0;
+    --secondary: 0.96 0.005 60;
+    --secondary-foreground: 0.2 0.02 20;
+    --muted: 0.95 0.005 60;
+    --muted-foreground: 0.48 0.01 20;
+    --accent: 0.72 0.09 15;
+    --accent-foreground: 0.99 0 0;
+    --destructive: 0.58 0.22 27;
+    --destructive-foreground: 0.99 0 0;
+    --border: 0.88 0.005 60;
+    --input: 0.88 0.005 60;
+    --ring: 0.12 0.01 20;
+    --radius: 0.25rem;
+    --chart-1: 0.72 0.09 15;
+    --chart-2: 0.6 0.12 25;
+    --chart-3: 0.5 0.08 200;
+    --chart-4: 0.65 0.1 90;
+    --chart-5: 0.4 0.05 280;
+    --sidebar: 0.97 0.005 60;
+    --sidebar-foreground: 0.12 0.01 20;
+    --sidebar-primary: 0.12 0.01 20;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.93 0.01 60;
+    --sidebar-accent-foreground: 0.12 0.01 20;
+    --sidebar-border: 0.88 0.005 60;
+    --sidebar-ring: 0.12 0.01 20;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
