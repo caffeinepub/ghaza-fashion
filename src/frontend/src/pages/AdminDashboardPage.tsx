@@ -80,7 +80,6 @@ type ProductForm = typeof EMPTY_FORM;
 
 /** Safely parse a price string to BigInt (handles decimals, commas, spaces) */
 function parsePriceToBigInt(value: string): bigint {
-  // Remove commas and spaces, then parse as float and round
   const cleaned = value.replace(/[,\s]/g, "");
   const num = Number.parseFloat(cleaned);
   if (Number.isNaN(num) || num < 0) throw new Error("Invalid price");
@@ -95,7 +94,8 @@ export function AdminDashboardPage() {
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(EMPTY_FORM);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadImages, uploading: uploadingImages } = useUploadImage();
+
+  const { uploadImages, uploading } = useUploadImage();
 
   const { data: products, isLoading: productsLoading } = useProducts();
   const { data: orders, isLoading: ordersLoading } = useOrders(ADMIN_PASSWORD);
@@ -139,14 +139,24 @@ export function AdminDashboardPage() {
     setDialogOpen(true);
   };
 
-  const handleImageUpload = async (files: FileList) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     try {
       const urls = await uploadImages(files);
-      setForm((f) => ({ ...f, imageUrls: [...f.imageUrls, ...urls] }));
-      toast.success("Image uploaded successfully!");
+      setForm((prev) => ({
+        ...prev,
+        imageUrls: [...prev.imageUrls, ...urls],
+      }));
+      toast.success(
+        `${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded!`,
+      );
     } catch (err) {
       console.error("Image upload error:", err);
-      toast.error("Failed to upload image. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to upload image";
+      toast.error(msg);
+    } finally {
+      e.target.value = "";
     }
   };
 
@@ -551,38 +561,43 @@ export function AdminDashboardPage() {
                     </button>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingImages}
-                  className="w-20 h-24 border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                {/* File upload button */}
+                <label
+                  htmlFor="photo-upload"
+                  className="w-20 h-24 border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-foreground hover:border-foreground hover:text-foreground transition-colors cursor-pointer select-none"
                   data-ocid="admin.upload_button"
                 >
-                  {uploadingImages ? (
-                    <Loader2 size={16} className="animate-spin" />
+                  {uploading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span className="font-body text-[10px] mt-1 text-center leading-tight">
+                        Uploading...
+                      </span>
+                    </>
                   ) : (
                     <>
                       <ImagePlus size={16} />
-                      <span className="font-body text-[10px] mt-1">
-                        Add Photo
+                      <span className="font-body text-[10px] mt-1 text-center leading-tight">
+                        Upload Photo
                       </span>
                     </>
                   )}
-                </button>
+                </label>
                 <input
+                  id="photo-upload"
                   ref={fileInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp"
                   multiple
                   className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleImageUpload(e.target.files);
-                      e.target.value = "";
-                    }
-                  }}
+                  onChange={handleFileChange}
                 />
               </div>
+              {uploading && (
+                <p className="font-body text-xs text-muted-foreground mt-2">
+                  Uploading photo to storage, please wait...
+                </p>
+              )}
             </div>
 
             {/* Name */}
@@ -690,7 +705,7 @@ export function AdminDashboardPage() {
             <div className="flex gap-3 pt-2">
               <Button
                 onClick={handleSave}
-                disabled={isSaving || uploadingImages}
+                disabled={isSaving || uploading}
                 className="flex-1 rounded-none bg-foreground text-primary-foreground font-body text-xs uppercase tracking-wider"
                 data-ocid="admin.save_button"
               >

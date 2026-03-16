@@ -3,6 +3,24 @@ import type { Order, Product } from "../backend";
 import { createActorWithConfig } from "../config";
 import { useActor } from "./useActor";
 
+/** Race a promise against a timeout so backend calls never hang forever */
+function withTimeout<T>(promise: Promise<T>, ms = 30000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              "Request timed out. Check your connection and try again.",
+            ),
+          ),
+        ms,
+      ),
+    ),
+  ]);
+}
+
 export function useProducts() {
   const { actor, isFetching } = useActor();
   return useQuery<Product[]>({
@@ -68,12 +86,14 @@ export function usePlaceOrder() {
       paymentMethod: string;
     }) => {
       if (!actor) throw new Error("No actor");
-      return actor.placeOrder(
-        args.customerName,
-        args.customerPhone,
-        args.customerAddress,
-        args.items,
-        args.paymentMethod,
+      return withTimeout(
+        actor.placeOrder(
+          args.customerName,
+          args.customerPhone,
+          args.customerAddress,
+          args.items,
+          args.paymentMethod,
+        ),
       );
     },
   });
@@ -85,7 +105,7 @@ export function useCancelOrder() {
   return useMutation({
     mutationFn: async (args: { orderId: bigint; customerPhone: string }) => {
       if (!actor) throw new Error("No actor");
-      return actor.cancelOrder(args.orderId, args.customerPhone);
+      return withTimeout(actor.cancelOrder(args.orderId, args.customerPhone));
     },
     onSuccess: (_data, vars) =>
       qc.invalidateQueries({
@@ -106,16 +126,17 @@ export function useAddProduct() {
       sizes: string[];
       availability: boolean;
     }) => {
-      // Always create a fresh actor to avoid stale actor issues
-      const actor = await createActorWithConfig();
-      return actor.addProduct(
-        args.name,
-        args.price,
-        args.description,
-        args.imageUrls,
-        args.category,
-        args.sizes,
-        args.availability,
+      const actor = await withTimeout(createActorWithConfig(), 15000);
+      return withTimeout(
+        actor.addProduct(
+          args.name,
+          args.price,
+          args.description,
+          args.imageUrls,
+          args.category,
+          args.sizes,
+          args.availability,
+        ),
       );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
@@ -135,17 +156,18 @@ export function useUpdateProduct() {
       sizes: string[];
       availability: boolean;
     }) => {
-      // Always create a fresh actor to avoid stale actor issues
-      const actor = await createActorWithConfig();
-      return actor.updateProduct(
-        args.id,
-        args.name,
-        args.price,
-        args.description,
-        args.imageUrls,
-        args.category,
-        args.sizes,
-        args.availability,
+      const actor = await withTimeout(createActorWithConfig(), 15000);
+      return withTimeout(
+        actor.updateProduct(
+          args.id,
+          args.name,
+          args.price,
+          args.description,
+          args.imageUrls,
+          args.category,
+          args.sizes,
+          args.availability,
+        ),
       );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
@@ -156,8 +178,8 @@ export function useDeleteProduct() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: bigint) => {
-      const actor = await createActorWithConfig();
-      return actor.deleteProduct(id);
+      const actor = await withTimeout(createActorWithConfig(), 15000);
+      return withTimeout(actor.deleteProduct(id));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
   });
@@ -173,7 +195,9 @@ export function useUpdateOrderStatus() {
       password: string;
     }) => {
       if (!actor) throw new Error("No actor");
-      return actor.updateOrderStatus(args.orderId, args.status, args.password);
+      return withTimeout(
+        actor.updateOrderStatus(args.orderId, args.status, args.password),
+      );
     },
     onSuccess: (_data, vars) =>
       qc.invalidateQueries({ queryKey: ["orders", vars.password] }),
@@ -185,7 +209,7 @@ export function useVerifyAdmin() {
   return useMutation({
     mutationFn: async (password: string) => {
       if (!actor) throw new Error("No actor");
-      return actor.verifyAdminPassword(password);
+      return withTimeout(actor.verifyAdminPassword(password));
     },
   });
 }
