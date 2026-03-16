@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,22 +32,23 @@ const PAYMENT_METHODS = [
     id: "jazzcash",
     label: "JazzCash",
     icon: "\uD83D\uDCF1",
-    desc: "03201435872 — Syed Muhammad Ali Shah",
+    desc: "03201435872 \u2014 Syed Muhammad Ali Shah",
   },
   {
     id: "easypaisa",
     label: "EasyPaisa",
     icon: "\uD83D\uDC9A",
-    desc: "03201435872 — Syed Muhammad Ali Shah",
+    desc: "03201435872 \u2014 Syed Muhammad Ali Shah",
   },
   {
     id: "meezan",
     label: "Meezan Bank",
     icon: "\uD83C\uDFE6",
-    desc: "02820108082003 — Syed Muhammad Ali Shah",
+    desc: "02820108082003 \u2014 Syed Muhammad Ali Shah",
   },
 ];
 
+const REQUIRES_TRANSACTION_ID = ["jazzcash", "easypaisa", "meezan"];
 const DELIVERY_THRESHOLD = 5999;
 const DELIVERY_FEE = 250;
 
@@ -48,11 +59,20 @@ export function CheckoutPage() {
 
   const [form, setForm] = useState({ name: "", phone: "", address: "" });
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [transactionId, setTransactionId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
+  const needsTransactionId = REQUIRES_TRANSACTION_ID.includes(paymentMethod);
   const deliveryFee = subtotal >= DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
   const total = subtotal + deliveryFee;
+
+  const paymentLabel =
+    PAYMENT_METHODS.find((p) => p.id === paymentMethod)?.label ?? paymentMethod;
+  const finalPaymentMethod = needsTransactionId
+    ? `${paymentLabel} (TXN: ${transactionId.trim()})`
+    : paymentLabel;
 
   if (items.length === 0 && !orderSubmitted) {
     return (
@@ -77,14 +97,20 @@ export function CheckoutPage() {
     if (!form.name.trim()) e.name = "Name is required";
     if (!form.phone.trim()) e.phone = "Phone number is required";
     if (!form.address.trim()) e.address = "Delivery address is required";
+    if (needsTransactionId && !transactionId.trim())
+      e.transactionId = "Transaction ID is required for this payment method";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleReviewOrder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setShowConfirm(true);
+  };
 
+  const handleConfirmOrder = async () => {
+    setShowConfirm(false);
     try {
       const orderItems = items.map((item) => ({
         productId: item.product.id,
@@ -94,15 +120,21 @@ export function CheckoutPage() {
         price: item.product.price,
       }));
 
-      await placeOrder.mutateAsync({
+      const orderId = await placeOrder.mutateAsync({
         customerName: form.name,
         customerPhone: form.phone,
         customerAddress: form.address,
         items: orderItems,
-        paymentMethod,
+        paymentMethod: finalPaymentMethod,
       });
 
       setOrderSubmitted(true);
+      const existingIds: string[] = JSON.parse(
+        localStorage.getItem("ghaza_order_ids") ?? "[]",
+      );
+      if (!existingIds.includes(orderId.toString()))
+        existingIds.push(orderId.toString());
+      localStorage.setItem("ghaza_order_ids", JSON.stringify(existingIds));
       localStorage.setItem("ghaza_customer_phone", form.phone);
       clearCart();
       navigate({ to: "/my-orders" });
@@ -118,7 +150,7 @@ export function CheckoutPage() {
           Checkout
         </h1>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleReviewOrder}>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
             {/* Left: form */}
             <div className="lg:col-span-3 space-y-8">
@@ -208,7 +240,11 @@ export function CheckoutPage() {
                     <button
                       type="button"
                       key={pm.id}
-                      onClick={() => setPaymentMethod(pm.id)}
+                      onClick={() => {
+                        setPaymentMethod(pm.id);
+                        setTransactionId("");
+                        setErrors((prev) => ({ ...prev, transactionId: "" }));
+                      }}
                       className={`text-left p-4 border-2 transition-all ${
                         paymentMethod === pm.id
                           ? "border-foreground bg-secondary"
@@ -234,6 +270,40 @@ export function CheckoutPage() {
                     </button>
                   ))}
                 </div>
+
+                {/* Transaction ID field */}
+                {needsTransactionId && (
+                  <div className="mt-5 p-4 border-2 border-foreground bg-secondary">
+                    <p className="font-body text-xs text-muted-foreground mb-3">
+                      Please send the payment first to the number above, then
+                      enter your Transaction ID below to confirm your order.
+                    </p>
+                    <Label className="font-body text-xs uppercase tracking-wider">
+                      Transaction ID *
+                    </Label>
+                    <Input
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      placeholder="Enter your transaction ID"
+                      className="mt-1.5 rounded-none"
+                      data-ocid="checkout.transaction_id.input"
+                    />
+                    {errors.transactionId && (
+                      <p
+                        className="text-xs text-destructive mt-1"
+                        data-ocid="checkout.error_state"
+                      >
+                        {errors.transactionId}
+                      </p>
+                    )}
+                    {transactionId.trim() && (
+                      <p className="text-xs text-green-700 mt-2 flex items-center gap-1">
+                        <CheckCircle2 size={12} />
+                        Transaction ID confirmed
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -295,13 +365,118 @@ export function CheckoutPage() {
                       Placing Order...
                     </>
                   ) : (
-                    "Place Order"
+                    "Review & Confirm Order"
                   )}
                 </Button>
               </div>
             </div>
           </div>
         </form>
+
+        {/* Order Confirmation Dialog */}
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent data-ocid="checkout.dialog">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-display text-xl">
+                Confirm Your Order
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-4 text-left">
+                  <div className="space-y-1">
+                    <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
+                      Customer
+                    </p>
+                    <p className="font-body text-sm font-semibold">
+                      {form.name}
+                    </p>
+                    <p className="font-body text-sm text-muted-foreground">
+                      {form.phone}
+                    </p>
+                    <p className="font-body text-sm text-muted-foreground">
+                      {form.address}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-1">
+                    <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
+                      Items
+                    </p>
+                    {items.map((item) => (
+                      <div
+                        key={item.product.id.toString()}
+                        className="flex justify-between text-sm"
+                      >
+                        <span className="font-body text-foreground">
+                          {item.product.name} &times; {item.quantity}
+                        </span>
+                        <span className="font-body font-semibold text-foreground">
+                          {formatPrice(
+                            Number(item.product.price) * item.quantity,
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-1 font-body text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Delivery</span>
+                      <span
+                        className={
+                          deliveryFee === 0
+                            ? "text-green-600 font-semibold"
+                            : ""
+                        }
+                      >
+                        {deliveryFee === 0 ? "FREE" : formatPrice(DELIVERY_FEE)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base">
+                      <span>Total</span>
+                      <span>{formatPrice(total)}</span>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-1">
+                    <p className="font-body text-xs uppercase tracking-widest text-muted-foreground">
+                      Payment
+                    </p>
+                    <p className="font-body text-sm font-semibold text-foreground">
+                      {paymentLabel}
+                    </p>
+                    {needsTransactionId && (
+                      <p className="font-body text-sm text-green-700 flex items-center gap-1">
+                        <CheckCircle2 size={13} />
+                        TXN ID: {transactionId.trim()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                className="rounded-none"
+                data-ocid="checkout.cancel_button"
+              >
+                Go Back
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmOrder}
+                className="rounded-none bg-foreground text-primary-foreground hover:bg-accent font-body text-xs uppercase tracking-widest"
+                data-ocid="checkout.confirm_button"
+              >
+                Confirm Order
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

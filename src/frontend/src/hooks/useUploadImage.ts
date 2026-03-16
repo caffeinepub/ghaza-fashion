@@ -3,35 +3,27 @@ import { useState } from "react";
 import { loadConfig } from "../config";
 import { StorageClient } from "../utils/StorageClient";
 
-function withTimeout<T>(promise: Promise<T>, ms = 30000): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) =>
-      setTimeout(
-        () =>
-          reject(
-            new Error("Upload timed out. Check your connection and try again."),
-          ),
-        ms,
-      ),
-    ),
-  ]);
-}
-
 export function useUploadImage() {
   const [uploading, setUploading] = useState(false);
 
   const uploadImages = async (files: FileList): Promise<string[]> => {
     setUploading(true);
     try {
-      const config = await withTimeout(loadConfig(), 10000);
+      let config: Awaited<ReturnType<typeof loadConfig>>;
+      try {
+        config = await loadConfig();
+      } catch {
+        throw new Error(
+          "Cannot connect to server. Check your internet and try again.",
+        );
+      }
 
       if (
         !config.storage_gateway_url ||
         config.storage_gateway_url === "nogateway"
       ) {
         throw new Error(
-          "Image storage is not configured. Please contact support.",
+          "Photo storage is not available. Please try again later.",
         );
       }
 
@@ -39,6 +31,7 @@ export function useUploadImage() {
       if (config.backend_host?.includes("localhost")) {
         await agent.fetchRootKey().catch(() => {});
       }
+
       const storageClient = new StorageClient(
         config.bucket_name,
         config.storage_gateway_url,
@@ -49,17 +42,31 @@ export function useUploadImage() {
 
       const urls: string[] = [];
       for (const file of Array.from(files)) {
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
+          throw new Error(`"${file.name}" is too large. Max size is 5MB.`);
+        }
+        let bytes: Uint8Array;
+        try {
+          bytes = new Uint8Array(await file.arrayBuffer());
+        } catch {
+          throw new Error("Could not read the photo file. Please try again.");
+        }
+        let hash: string;
+        try {
+          const result = await storageClient.putFile(bytes);
+          hash = result.hash;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          throw new Error(`Photo upload failed: ${msg.slice(0, 120)}`);
+        }
+        let url: string;
+        try {
+          url = await storageClient.getDirectURL(hash);
+        } catch {
           throw new Error(
-            `File "${file.name}" is too large. Maximum size is 5MB.`,
+            "Photo uploaded but URL could not be retrieved. Try again.",
           );
         }
-        const bytes = new Uint8Array(
-          await withTimeout(file.arrayBuffer(), 10000),
-        );
-        const { hash } = await withTimeout(storageClient.putFile(bytes), 30000);
-        const url = await withTimeout(storageClient.getDirectURL(hash), 10000);
         urls.push(url);
       }
       return urls;

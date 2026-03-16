@@ -3,7 +3,6 @@ import type { Order, Product } from "../backend";
 import { createActorWithConfig } from "../config";
 import { useActor } from "./useActor";
 
-/** Race a promise against a timeout so backend calls never hang forever */
 function withTimeout<T>(promise: Promise<T>, ms = 30000): Promise<T> {
   return Promise.race([
     promise,
@@ -69,6 +68,30 @@ export function useOrdersByPhone(phone: string) {
   });
 }
 
+/** Fetch orders by IDs stored in localStorage - no phone number needed */
+export function useMyOrders() {
+  const { actor, isFetching } = useActor();
+  const storedIds: string[] = JSON.parse(
+    localStorage.getItem("ghaza_order_ids") ?? "[]",
+  );
+  return useQuery<Order[]>({
+    queryKey: ["my-orders", storedIds.join(",")],
+    queryFn: async () => {
+      if (!actor || storedIds.length === 0) return [];
+      const results = await Promise.allSettled(
+        storedIds.map((id) => actor.getOrder(BigInt(id))),
+      );
+      return results
+        .filter(
+          (r): r is PromiseFulfilledResult<Order> => r.status === "fulfilled",
+        )
+        .map((r) => r.value);
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 30000,
+  });
+}
+
 export function usePlaceOrder() {
   const { actor } = useActor();
   return useMutation({
@@ -107,10 +130,7 @@ export function useCancelOrder() {
       if (!actor) throw new Error("No actor");
       return withTimeout(actor.cancelOrder(args.orderId, args.customerPhone));
     },
-    onSuccess: (_data, vars) =>
-      qc.invalidateQueries({
-        queryKey: ["orders-by-phone", vars.customerPhone],
-      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-orders"] }),
   });
 }
 

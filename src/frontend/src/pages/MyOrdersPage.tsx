@@ -8,7 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Order } from "../backend";
 import { Layout } from "../components/Layout";
-import { useCancelOrder, useOrdersByPhone } from "../hooks/useQueries";
+import { useCancelOrder, useMyOrders } from "../hooks/useQueries";
 import { formatDate, formatPrice } from "../lib/format";
 
 const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
@@ -37,24 +37,28 @@ function statusColor(
 
 export function MyOrdersPage() {
   const navigate = useNavigate();
-  const storedPhone = localStorage.getItem("ghaza_customer_phone") ?? "";
   const [cancellingId, setCancellingId] = useState<bigint | null>(null);
-
-  const { data: orders, isLoading, isFetching } = useOrdersByPhone(storedPhone);
+  const { data: orders, isLoading, isFetching } = useMyOrders();
   const cancelOrder = useCancelOrder();
+  const storedPhone = localStorage.getItem("ghaza_customer_phone") ?? "";
+
+  const storedIds: string[] = JSON.parse(
+    localStorage.getItem("ghaza_order_ids") ?? "[]",
+  );
+  const hasOrders = storedIds.length > 0;
 
   const handleCancel = async (order: Order) => {
     setCancellingId(order.id);
     try {
       await cancelOrder.mutateAsync({
         orderId: order.id,
-        customerPhone: storedPhone,
+        customerPhone: storedPhone || order.customerPhone,
       });
       toast.success(`Order #${order.id} has been cancelled.`);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Could not cancel order.";
-      toast.error(msg);
+      toast.error(
+        err instanceof Error ? err.message : "Could not cancel order.",
+      );
     } finally {
       setCancellingId(null);
     }
@@ -74,8 +78,7 @@ export function MyOrdersPage() {
           </h1>
         </div>
 
-        {/* No phone stored */}
-        {!storedPhone && (
+        {!hasOrders && (
           <div
             className="text-center py-20 border border-border"
             data-ocid="myorders.empty_state"
@@ -85,10 +88,10 @@ export function MyOrdersPage() {
               className="mx-auto text-muted-foreground mb-4"
             />
             <p className="font-display text-xl text-foreground mb-2">
-              No order history yet
+              No orders yet
             </p>
             <p className="font-body text-sm text-muted-foreground mb-6">
-              Place an order first to see your order history here.
+              Your orders will appear here automatically after you place them.
             </p>
             <Button
               onClick={() => navigate({ to: "/" })}
@@ -100,8 +103,7 @@ export function MyOrdersPage() {
           </div>
         )}
 
-        {/* Loading */}
-        {storedPhone && (isLoading || isFetching) && (
+        {hasOrders && (isLoading || isFetching) && sorted.length === 0 && (
           <div className="space-y-4" data-ocid="myorders.loading_state">
             {[1, 2, 3].map((k) => (
               <Skeleton key={k} className="h-28 w-full" />
@@ -109,23 +111,7 @@ export function MyOrdersPage() {
           </div>
         )}
 
-        {/* No orders found */}
-        {storedPhone && !isLoading && !isFetching && sorted.length === 0 && (
-          <div
-            className="text-center py-16 border border-border"
-            data-ocid="myorders.empty_state"
-          >
-            <p className="font-display text-lg text-muted-foreground italic">
-              No orders found.
-            </p>
-            <p className="font-body text-sm text-muted-foreground mt-2">
-              Orders placed with this phone number will appear here.
-            </p>
-          </div>
-        )}
-
-        {/* Orders list */}
-        {storedPhone && !isLoading && !isFetching && sorted.length > 0 && (
+        {sorted.length > 0 && (
           <div className="space-y-4">
             {sorted.map((order, idx) => (
               <div
